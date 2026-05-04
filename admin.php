@@ -14,6 +14,7 @@ $flashType  = 'success'; // 'success' | 'error'
 
 // ── Handle GET: logout ───────────────────────────────────────────────────────
 if (!empty($_GET['action']) && $_GET['action'] === 'logout') {
+    session_regenerate_id(true);
     session_destroy();
     header('Location: admin.php');
     exit;
