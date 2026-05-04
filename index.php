@@ -384,7 +384,7 @@ try {
     <div class="game-container">
         <div class="stats-container" id="statsContainer" style="display:none;">
             <div class="move-counter" id="moveCounter">移動次數: 0</div>
-            <div class="timer" id="timer">剩餘時間: 60 秒</div>
+            <div class="timer" id="timer">剩餘時間: 30 秒</div>
         </div>
         <div class="board" id="board"></div>
     </div>
@@ -403,7 +403,7 @@ try {
             <ol>
                 <li>點擊棋盤上的格子來移動駿馬</li>
                 <li>駿馬只能按照「日」字形移動</li>
-                <li>目標是在 60 秒內走遍最多格子</li>
+                <li>目標是在 30 秒內走遍最多格子</li>
                 <li>當時間到或無法移動時遊戲結束</li>
             </ol>
             <button onclick="startGame()">確定</button>
@@ -451,7 +451,7 @@ try {
         let knightPosition = null;
         let moveCount      = 0;
         let gameStarted    = false;
-        let timeLeft       = 60;
+        let timeLeft       = 30;
         let timerInterval  = null;
         let playerName     = "玩家";
         const knightImage  = "imagek2.jpg"; // 本地 JPG 文件
@@ -578,12 +578,12 @@ try {
 
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
-            timeLeft = 60;
+            timeLeft = 30;
             timerElement.textContent = `剩餘時間: ${timeLeft} 秒`;
             const startTimestamp = Date.now();
             timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
-                timeLeft = Math.max(0, 60 - elapsed);
+                timeLeft = Math.max(0, 30 - elapsed);
                 document.getElementById('timeSound').play();
                 timerElement.textContent = `剩餘時間: ${timeLeft} 秒`;
                 if (timeLeft <= 0) {
