@@ -157,6 +157,11 @@ try {
             filter: brightness(1.15);
         }
 
+        .ranking-button {
+            background: linear-gradient(145deg, #f39c12, #d68910);
+            border-color: #9a6108;
+        }
+
         .move-counter, .timer {
             font-size: 35px;
             font-weight: 600;
@@ -371,13 +376,13 @@ try {
     </div>
 
 <?php else: ?>
-    <div class="button-container">
+    <div class="button-container" id="homeButtons">
         <button class="start-button" onclick="showGuide()">開始遊戲</button>
+        <button class="start-button ranking-button" onclick="showRankings()">查看龍虎榜</button>
     </div>
-    <div id="rankingList"></div>
 
     <div class="game-container">
-        <div class="stats-container">
+        <div class="stats-container" id="statsContainer" style="display:none;">
             <div class="move-counter" id="moveCounter">移動次數: 0</div>
             <div class="timer" id="timer">剩餘時間: 60 秒</div>
         </div>
@@ -412,6 +417,22 @@ try {
             <p id="endMessage"></p>
             <button onclick="restartGame()">重新開始</button>
             <button onclick="closeEndModal()">關閉</button>
+        </div>
+    </div>
+
+    <!-- 龍虎榜模態窗 -->
+    <div class="overlay" id="rankingOverlay" onclick="closeRankings()"></div>
+    <div class="modal" id="rankingModal">
+        <div class="modal-content">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" style="display:block;margin:0 auto 8px;">
+                <path d="M18 4 L46 4 L42 34 Q39 46 32 50 Q25 46 22 34 Z" fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
+                <path d="M18 10 Q4 12 6 28 Q8 40 18 34" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
+                <path d="M46 10 Q60 12 58 28 Q56 40 46 34" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round"/>
+                <rect x="29" y="50" width="6" height="8" fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
+                <rect x="20" y="58" width="24" height="6" rx="3" fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
+            </svg>
+            <div id="rankingList"></div>
+            <button onclick="closeRankings()" style="margin-top:15px;">關閉</button>
         </div>
     </div>
 
@@ -456,7 +477,18 @@ try {
             moveCount      = 0;
             moveCounter.textContent = '移動次數: 0';
             gameStarted = false;
-            displayRankings();
+        }
+
+        function showGameUI() {
+            boardElement.style.display = 'grid';
+            document.getElementById('statsContainer').style.display = 'flex';
+            document.getElementById('homeButtons').style.display = 'none';
+        }
+
+        function showHomeUI() {
+            boardElement.style.display = 'none';
+            document.getElementById('statsContainer').style.display = 'none';
+            document.getElementById('homeButtons').style.display = 'flex';
         }
 
         function showGuide() {
@@ -470,7 +502,7 @@ try {
             modal.style.display   = 'none';
             overlay.style.display = 'none';
             gameStarted = true;
-            boardElement.style.display = 'grid';
+            showGameUI();
             placeKnightRandomly();
             startTimer();
         }
@@ -545,10 +577,13 @@ try {
         }
 
         function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
             timeLeft = 60;
             timerElement.textContent = `剩餘時間: ${timeLeft} 秒`;
+            const startTimestamp = Date.now();
             timerInterval = setInterval(() => {
-                timeLeft--;
+                const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+                timeLeft = Math.max(0, 60 - elapsed);
                 document.getElementById('timeSound').play();
                 timerElement.textContent = `剩餘時間: ${timeLeft} 秒`;
                 if (timeLeft <= 0) {
@@ -559,6 +594,7 @@ try {
         }
 
         function endGame() {
+            if (!gameStarted) return;
             document.getElementById('endSound').play();
             gameStarted = false;
             clearInterval(timerInterval);
@@ -582,7 +618,7 @@ try {
             .catch(() => {});
         }
 
-        // Display top-10 rankings fetched from server
+        // Display top-5 rankings fetched from server
         function displayRankings() {
             fetch('get_rankings.php')
                 .then(r => r.json())
@@ -606,6 +642,17 @@ try {
                 });
         }
 
+        function showRankings() {
+            displayRankings();
+            document.getElementById('rankingModal').style.display  = 'block';
+            document.getElementById('rankingOverlay').style.display = 'block';
+        }
+
+        function closeRankings() {
+            document.getElementById('rankingModal').style.display  = 'none';
+            document.getElementById('rankingOverlay').style.display = 'none';
+        }
+
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.appendChild(document.createTextNode(str));
@@ -616,14 +663,17 @@ try {
             endModal.style.display   = 'none';
             endOverlay.style.display = 'none';
             initializeBoard();
-            startGame();
+            gameStarted = true;
+            showGameUI();
+            placeKnightRandomly();
+            startTimer();
         }
 
         function closeEndModal() {
             endModal.style.display   = 'none';
             endOverlay.style.display = 'none';
             initializeBoard();
-            showGuide();
+            showHomeUI();
         }
 
         initializeBoard();
